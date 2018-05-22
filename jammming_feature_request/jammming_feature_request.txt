@@ -1,0 +1,26 @@
+﻿Design Document
+May 19th 2018
+
+
+OBJECTIVE
+Add three songs to a playlist from the Spotify’s recommendations API based on tracks in the playlist.
+BACKGROUND 
+The Jamming Application only adds songs to a playlist that a user searches for and manually enters. Spotify has over thirty-five million songs in it’s library and an API that can return recommended songs based on tracks, that could allow a user to add new songs based on the songs they’ve added to their playlist. A new button labeled “ADD RECOMMENDED TRACKS” to the application that when clicked should add three tracks to the playlist based on the user’s currently added tracks.
+TECHNICAL DESIGN
+No new component will need to be created for this feature. The code to get the recommendations will be added to the Spotify util object. The code that will call this new method will live in the App.js file and pass it down by props to the Playlist component which will have new HTML for a button.
+
+
+In the Spotify util object in src/util/Spotify.js create a new method named getRecommendations(). This new method should take a single parameter named trackIDs that will be an array of Spotify track IDs. This method should hit Spotify’s recommendation endpoint at https://api.spotify.com/v1/recommendations. This API has a default value of 20 for the limit parameter, but the API should be called with a limit of 3. This API can take up to 5 artists, tracks, or genres for recommendations seeds. For the seed_tracks parameter pass the trackIDs passed into this method. This method will return an array of track objects identical to the search() method. 
+
+
+To prevent duplicate code the map portion of the search() method should be refactored and moved into a new method called formatTracks(). This new method should have one parameter named tracks. That value should the tracks returned from a spotify request. The method should use map to return the tracks in an array of object that both search() and getRecommendations() should be able to use.
+
+With getRecommendations() completed the App components needs to be updated to have a new method named getRecommendations() as well. This method will not take any parameters. First the method needs to use the playlistTracks values in it’s state to get up to 5 random track IDs. If less than 5 tracks exist it should just use the track IDs from all the track values. If no tracks are in the playlistTracks state it should just return an empty array. Once getRecommendations() has the tracks it will get the recommendations off of, it should call the Spotify util’s getRecommendations() method passing in those track IDs as an array. The values returned from that call should then be added to playlistTracks state adding them to the user’s playlist.
+
+Now the App.js component needs to pass down the new getRecommendations() method down to the Playlist component. A new parameter named onRecommendations should be created on the Playlist component and given the value of getRecommendations(). The getRecommendations() method will need to be bound to the component as well.
+
+In the Playlist component a new button should be added after the “SAVE TO SPOTIFY” button with the text “ADD RECOMMENDATIONS”. The JSX code should check if there are any tracks in the playlist passed to it from the App component, if there are tracks display this new button. This will prevent someone from trying to get recommendations when no tracks are present. When a user clicks on the button it should call the passed down onRecommendations method.  
+CAVEATS
+There are two main caveats to consider. If the user does not have any tracks in their playlist a recommendation cannot be made. Two ways to handle this are to not show the button until tracks are in the state, and only return an empty array if no tracks are in the state before the search occurs.
+
+The other caveat is that Spotify may not have recommendations on some tracks. In that case the getRecommendations() method should return an empty array and nothing will be added to the playlist.
